@@ -1,0 +1,16 @@
+{
+    "files.associations": {
+        "vector": "cpp",
+        "memory": "cpp",
+        "cstdlib": "cpp",
+        "cmath": "cpp",
+        "complex": "cpp",
+        "valarray": "cpp",
+        "ostream": "cpp",
+        "istream": "cpp",
+        "string_iostream": "cpp",
+        "functional": "cpp",
+        "iterator": "cpp",
+        "type_traits": "cpp"
+    }
+}

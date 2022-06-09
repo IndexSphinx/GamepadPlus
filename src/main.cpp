@@ -3,10 +3,11 @@
 #include "GamepadPlus.h"
 
 #define RANGE 30
+#define TEST_BUTTON 10
 
 size_t buttonIndex = 0;
 
-CGamepadPlus gamepadPlus;
+CGamepadPlus gamepad_plus;
 
 size_t row_pins_num[] = {4, 5, 6, 7, 8};
 size_t col_pins_num[] = {9, 10, 14, 15, 16};
@@ -22,9 +23,9 @@ void setup()
   for (size_t i = 0; i < col_pins_count; i++)
     pinMode(col_pins_num[i], OUTPUT);
 
-  gamepadPlus.begin();
-  gamepadPlus.setLeftAxisRange(-512, 512);
-  gamepadPlus.setRightAxisRange(-512, 512);
+  gamepad_plus.begin();
+  gamepad_plus.setLeftAxisRange(-512, 512);
+  gamepad_plus.setRightAxisRange(-512, 512);
 
   auto getLeftAxisX = [](const int &x) -> int32_t
   {
@@ -89,8 +90,10 @@ void setup()
     }
   };
 
-  gamepadPlus.bindLeftAxis(getLeftAxisX, getLeftAxisY);
-  gamepadPlus.bindRightAxis(getRightAxisX, getRightAxisY);
+  gamepad_plus.bind(BindType::LeftAxis, getLeftAxisX, getLeftAxisY);
+  gamepad_plus.bind(BindType::RightAxis, getRightAxisX, getRightAxisY);
+  gamepad_plus.bind(BindType::GamepadButton, 1, 11);
+  gamepad_plus.bind(BindType::HatSwitch, 2, 0);
 
   Serial.begin(115200);
 }
@@ -127,15 +130,10 @@ void loop()
         if (!digitalRead(row_pins_num[j]))
         {
           Serial.println(i1 + j * col_pins_count + 1);
-          // Keyboard.press('x');
-          // Joystick.pressButton(GAMEPAD_TEST_BUTTON);
-          // Joystick.setHatSwitch(0, 90);
-
+          gamepad_plus.press(BindType::HatSwitch, i1 + j * col_pins_count + 1);
           while (!digitalRead(row_pins_num[j]))
             ;
-          // Keyboard.release('x');
-          // Joystick.releaseButton(GAMEPAD_TEST_BUTTON);
-          // Joystick.setHatSwitch(0, JOYSTICK_HATSWITCH_RELEASE);
+          gamepad_plus.release(BindType::HatSwitch, i1 + j * col_pins_count + 1);
         }
       }
     }
@@ -159,12 +157,12 @@ void loop()
   int left_X = analogRead(A0);
   int left_Y = analogRead(A1);
 
-  Serial.print(String("left X:") + String(left_X) + String(" left Y:") + String(left_Y) + String("\n"));
-  gamepadPlus.setLeftAxis(left_X, left_Y);
+  // Serial.print(String("left X:") + String(left_X) + String(" left Y:") + String(left_Y) + String("\n"));
+  // gamepadPlus.setLeftAxis(left_X, left_Y);
 
   int right_X = analogRead(A2);
   int right_Y = analogRead(A3);
-  gamepadPlus.setRightAxis(right_X, right_Y);
+  // gamepadPlus.setRightAxis(right_X, right_Y);
 
   delay(10);
 }

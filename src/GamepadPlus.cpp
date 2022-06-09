@@ -31,26 +31,47 @@ void CGamepadPlus::setRightAxisRange(const int32_t minimum, const int32_t maximu
     m_joystick->setRzAxisRange(minimum, maximum);
 }
 
-void CGamepadPlus::bindLeftAxis(const getAxisValue fun_getX, const getAxisValue fun_getY)
+void CGamepadPlus::bind(const BindType bind_type, const funGetAxisValue fun_getX, const funGetAxisValue fun_getY)
 {
-    m_getLeftAxisX = fun_getX;
-    m_getLeftAxisY = fun_getY;
+    switch (bind_type)
+    {
+    case BindType::LeftAxis:
+        bindLeftAxis(fun_getX, fun_getY);
+        break;
+    case BindType::RightAxis:
+        bindRightAxis(fun_getX, fun_getY);
+        break;
+    default:
+        break;
+    }
 }
 
-void CGamepadPlus::bindRightAxis(const getAxisValue fun_getX, const getAxisValue fun_getY)
+void CGamepadPlus::bind(const BindType bind_type, const int index, const int button_value)
 {
-    m_getRightAxisX = fun_getX;
-    m_getRightAxisY = fun_getY;
+    switch (bind_type)
+    {
+    case BindType::GamepadButton:
+        bindGamepadButton(index, button_value);
+        break;
+    case BindType::HatSwitch:
+        bindHatSwitchButton(index, button_value);
+        break;
+    case BindType::KeyboardButton:
+        bindKeyboardButton(index, button_value);
+        break;
+    default:
+        break;
+    }
 }
 
 void CGamepadPlus::setLeftAxis(const int &X, const int &Y)
 {
     if ((X != m_old_left_X) || (Y != m_old_left_Y))
     {
-        if (m_getLeftAxisX && m_joystick)
-            m_joystick->setXAxis(m_getLeftAxisX(X));
-        if (m_getLeftAxisY && m_joystick)
-            m_joystick->setYAxis(m_getLeftAxisY(Y));
+        if (m_get_left_axis_X && m_joystick)
+            m_joystick->setXAxis(m_get_left_axis_X(X));
+        if (m_get_left_axis_Y && m_joystick)
+            m_joystick->setYAxis(m_get_left_axis_Y(Y));
         m_old_left_X = X;
         m_old_left_Y = Y;
     }
@@ -60,12 +81,66 @@ void CGamepadPlus::setRightAxis(const int &X, const int &Y)
 {
     if ((X != m_old_right_X) || (Y != m_old_right_Y))
     {
-        if (m_getRightAxisX && m_joystick)
-            m_joystick->setZAxis(m_getRightAxisX(X));
-        if (m_getRightAxisY && m_joystick)
-            m_joystick->setRzAxis(m_getRightAxisY(Y));
+        if (m_get_right_axis_X && m_joystick)
+            m_joystick->setZAxis(m_get_right_axis_X(X));
+        if (m_get_right_axis_Y && m_joystick)
+            m_joystick->setRzAxis(m_get_right_axis_Y(Y));
         m_old_right_X = X;
         m_old_right_Y = Y;
+    }
+}
+
+void CGamepadPlus::press(const BindType &bind_type, const uint8_t &index)
+{
+    for (auto button : m_buttons)
+    {
+        // Serial.print(String("getBindType:") + String((int)button.getBindType()) + String(" getIndex:") + String(button.getIndex()) + String(" getValue:") + String(button.getValue()) + String("\n"));
+
+        if (button.getIndex() == index)
+        {
+            switch (button.getBindType())
+            {
+            case BindType::GamepadButton:
+                if (m_joystick)
+                    m_joystick->pressButton(button.getValue());
+                break;
+            case BindType::HatSwitch:
+                if (m_joystick)
+                    m_joystick->setHatSwitch(0, button.getValue());
+                break;
+            case BindType::KeyboardButton:
+                Keyboard.press(button.getValue());
+                break;
+            default:
+                break;
+            }
+        }
+    }
+}
+
+void CGamepadPlus::release(const BindType &bind_type, const uint8_t index)
+{
+    for (auto button : m_buttons)
+    {
+        if (button.getIndex() == index)
+        {
+            switch (button.getBindType())
+            {
+            case BindType::GamepadButton:
+                if (m_joystick)
+                    m_joystick->releaseButton(button.getValue());
+                break;
+            case BindType::HatSwitch:
+                if (m_joystick)
+                    m_joystick->setHatSwitch(0, JOYSTICK_HATSWITCH_RELEASE);
+                break;
+            case BindType::KeyboardButton:
+                Keyboard.release(button.getValue());
+                break;
+            default:
+                break;
+            }
+        }
     }
 }
 
@@ -83,4 +158,46 @@ void CGamepadPlus::end()
     if (m_joystick)
         m_joystick->end();
     Keyboard.end();
+}
+
+void CGamepadPlus::bindLeftAxis(const funGetAxisValue fun_getX, const funGetAxisValue fun_getY)
+{
+    m_get_left_axis_X = fun_getX;
+    m_get_left_axis_Y = fun_getY;
+}
+
+void CGamepadPlus::bindRightAxis(const funGetAxisValue fun_getX, const funGetAxisValue fun_getY)
+{
+    m_get_right_axis_X = fun_getX;
+    m_get_right_axis_Y = fun_getY;
+}
+
+void CGamepadPlus::bindGamepadButton(const int index, const int value)
+{
+    for (auto button : m_buttons)
+    {
+        if (button.getIndex() == index)
+            return;
+    }
+    m_buttons.push_back(Button(BindType::GamepadButton, index, value));
+}
+
+void CGamepadPlus::bindHatSwitchButton(const int index, const int value)
+{
+    for (auto button : m_buttons)
+    {
+        if (button.getIndex() == index)
+            return;
+    }
+    m_buttons.push_back(Button(BindType::HatSwitch, index, value));
+}
+
+void CGamepadPlus::bindKeyboardButton(const int index, const int value)
+{
+    for (auto button : m_buttons)
+    {
+        if (button.getIndex() == index)
+            return;
+    }
+    m_buttons.push_back(Button(BindType::KeyboardButton, index, value));
 }
