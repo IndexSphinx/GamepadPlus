@@ -11,6 +11,16 @@
         "string_iostream": "cpp",
         "functional": "cpp",
         "iterator": "cpp",
-        "type_traits": "cpp"
+        "type_traits": "cpp",
+        "algorithm": "cpp",
+        "associative_base": "cpp",
+        "deque": "cpp",
+        "initializer_list": "cpp",
+        "list": "cpp",
+        "map": "cpp",
+        "queue": "cpp",
+        "serstream": "cpp",
+        "set": "cpp",
+        "string": "cpp"
     }
 }
